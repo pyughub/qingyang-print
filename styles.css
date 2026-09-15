@@ -65,10 +65,9 @@ body {
   margin: 0;
 }
 
-.tag {
-  margin: 8px 0 0;
-  color: var(--graphite);
-  font-size: 0.98rem;
+.ver {
+  color: var(--platen-ink);
+  font-size: 0.8em;
 }
 
 .seal-btn {
