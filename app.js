@@ -374,12 +374,13 @@ async function compose() {
 }
 
 function fitSheet() {
+  const frame = document.getElementById("sheet-frame");
   const well = document.querySelector(".paper-well");
-  if (!well) return;
+  if (!frame || !well) return;
   sheet.style.transform = "none";
-  const scale = Math.min(1, (well.clientWidth - 8) / sheet.offsetWidth);
+  const scale = Math.min(1, frame.clientWidth / sheet.offsetWidth);
   sheet.style.transform = `scale(${scale})`;
-  well.style.minHeight = `${Math.ceil(sheet.offsetHeight * scale) + 24}px`;
+  frame.style.height = `${Math.ceil(sheet.offsetHeight * scale)}px`;
 }
 
 async function downloadPdf() {

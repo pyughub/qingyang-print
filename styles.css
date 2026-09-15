@@ -25,6 +25,8 @@
 html,
 body {
   margin: 0;
+  width: 100%;
+  overflow-x: hidden;
   min-height: 100%;
   background:
     radial-gradient(1200px 480px at 50% -80px, rgba(255, 255, 255, 0.55), transparent 70%),
@@ -35,6 +37,8 @@ body {
 
 body {
   min-height: 100dvh;
+  display: flex;
+  justify-content: center;
 }
 
 .machine {
@@ -271,10 +275,19 @@ body {
   overflow: hidden;
 }
 
+.sheet-frame {
+  position: relative;
+  width: 100%;
+  min-height: 420px;
+  overflow: hidden;
+}
+
 .sheet {
+  position: absolute;
+  top: 0;
+  left: 0;
   width: 210mm;
   min-height: 297mm;
-  margin: 0;
   background: var(--sheet);
   color: var(--ink);
   font-family: var(--song);
@@ -451,7 +464,7 @@ body {
 
 .hidden { display: none !important; }
 
-@media (max-width: 900px) {
+@media (max-width: 1100px) {
   .bed { grid-template-columns: 1fr; }
   .paper-well { min-height: 420px; }
 }
