@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>清样 — 手稿进，铅字出</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,560;9..144,700&family=Noto+Sans+SC:wght@400;600&family=Noto+Serif+SC:wght@500;700&family=Sora:wght@400;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.22/dist/katex.min.css" integrity="sha384-5TcZemv2l/9On385z///+d7MSYlvIEw9FuZTIdZ14vJLqWphw7e7ZPuOiCHJcFCP" crossorigin="anonymous" />
+  <link rel="stylesheet" href="./styles.css?v=7" />
+</head>
+<body>
+  <main class="machine">
+    <header class="mast">
+      <div>
+        <h1 class="brand">清样</h1>
+        <p class="tag">手稿进，铅字出。<span class="ver">11</span></p>
+      </div>
+      <button type="button" class="seal-btn" id="open-seal">印鉴</button>
+    </header>
+
+    <section class="bed">
+      <div class="platen">
+        <div class="glass" id="glass" tabindex="0" role="button" aria-label="放上照片">
+          <div class="marks" aria-hidden="true">
+            <span class="tl"></span><span class="tr"></span>
+            <span class="bl"></span><span class="br"></span>
+          </div>
+          <div class="hint" id="hint">
+            <strong>把照片放在这块玻璃上</strong>
+            拖入、点选，或直接粘贴截图。可放多张同一题。
+          </div>
+          <div class="thumbs" id="thumbs"></div>
+        </div>
+        <div class="platen-bar">
+          <div class="meta">
+            <input id="name" placeholder="姓名" autocomplete="name" />
+            <input id="sid" placeholder="学号" />
+            <input id="course" placeholder="课程，可空" />
+          </div>
+          <button type="button" class="start" id="print-btn">付印</button>
+        </div>
+      </div>
+
+      <div class="tray">
+        <div class="tray-top">
+          <span>出纸口</span>
+          <div class="tray-actions">
+            <button type="button" id="tex-btn" disabled>底稿 .tex</button>
+            <button type="button" id="pdf-btn" disabled>取件 PDF</button>
+          </div>
+        </div>
+        <div class="paper-well">
+          <div class="sheet-frame" id="sheet-frame">
+            <article class="sheet" id="sheet">
+              <div class="empty-sheet" id="empty-sheet">付印之后，铅字从这里出来。</div>
+              <div id="sheet-body" class="hidden"></div>
+            </article>
+          </div>
+        </div>
+      </div>
+    </section>
+    <p class="status" id="status"></p>
+  </main>
+
+  <dialog class="dialog" id="seal">
+    <form class="dialog-body" method="dialog" id="seal-form">
+      <h2>印鉴</h2>
+      <p>Google 项目若被拒绝，改用国内通义千问。密钥只存在这台浏览器。</p>
+      <p>
+        申请：
+        <a href="https://bailian.console.aliyun.com/?apiKey=1#/api-key" target="_blank" rel="noreferrer">阿里云百炼</a>
+        ·
+        <a href="https://cloud.siliconflow.cn/account/ak" target="_blank" rel="noreferrer">硅基流动</a>
+      </p>
+      <label for="provider">接口</label>
+      <select id="provider">
+        <option value="qwen">通义千问（推荐）</option>
+        <option value="siliconflow">硅基流动</option>
+        <option value="gemini">Gemini</option>
+        <option value="openai">其他 OpenAI 兼容</option>
+      </select>
+      <label for="api-key">密钥</label>
+      <input id="api-key" type="password" autocomplete="off" />
+      <label for="model">模型</label>
+      <input id="model" placeholder="qwen-vl-plus" />
+      <label for="base-url">Base URL</label>
+      <input id="base-url" placeholder="https://dashscope.aliyuncs.com/compatible-mode/v1" />
+      <menu>
+        <button value="cancel">关闭</button>
+        <button class="primary" value="save">收下</button>
+      </menu>
+    </form>
+  </dialog>
+
+  <input class="hidden" id="file" type="file" accept="image/*" multiple />
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.22/dist/katex.min.js" integrity="sha384-cMkvdD8LoxVzGF/RPUKAcvmm49FQ0oxwDF3BGKtDXcEc+T1b2N+teh/OJfpU0jr6" crossorigin="anonymous"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js" integrity="sha384-ZZ1pncU3bQe8y31yfZdMFdSpttDoPmOZg2wguVK9almUodir1PghgT0eY7Mrty8H" crossorigin="anonymous"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/jspdf@2.5.2/dist/jspdf.umd.min.js" integrity="sha384-en/ztfPSRkGfME4KIm05joYXynqzUgbsG5nMrj/xEFAHXkeZfO3yMK8QQ+mP7p1/" crossorigin="anonymous"></script>
+  <script defer src="./print.v11.js"></script>
+</body>
+</html>
