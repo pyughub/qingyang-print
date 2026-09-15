@@ -47,3 +47,44 @@ test("repairs frac that JSON would silently mangle", () => {
   assert.equal(draft.problems[0].stem, String.raw`求 \frac{1}{2}`);
   assert.equal(draft.problems[0].solution[0].latex, String.raw`\times 2`);
 });
+
+test("collapses over-escaped pmatrix latex", () => {
+  const raw = JSON.stringify({
+    problems: [
+      {
+        stem: "化为RREF",
+        solution: [
+          {
+            kind: "math",
+            latex: String.raw`\\begin{pmatrix} 1 & 2 \\\\ 3 & 4 \\end{pmatrix}`,
+          },
+        ],
+      },
+    ],
+  });
+  const draft = parseDraft(raw);
+  assert.equal(
+    draft.problems[0].solution[0].latex,
+    String.raw`\begin{pmatrix} 1 & 2 \\ 3 & 4 \end{pmatrix}`
+  );
+});
+
+test("drops consecutive duplicate matrices", () => {
+  const matrix = String.raw`\begin{pmatrix} 1 \end{pmatrix}`;
+  const raw = JSON.stringify({
+    problems: [
+      {
+        stem: "x",
+        solution: [
+          { kind: "math", latex: matrix },
+          { kind: "math", latex: matrix },
+          { kind: "rowops", from: matrix, ops: ["r_2"], to: String.raw`\begin{pmatrix} 2 \end{pmatrix}` },
+        ],
+      },
+    ],
+  });
+  const draft = parseDraft(raw);
+  assert.equal(draft.problems[0].solution.length, 2);
+  assert.equal(draft.problems[0].solution[0].kind, "math");
+  assert.equal(draft.problems[0].solution[1].kind, "rowops");
+});

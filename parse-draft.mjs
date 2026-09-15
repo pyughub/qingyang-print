@@ -143,6 +143,58 @@ function salvageJson(raw) {
   return closeOpen(escaped);
 }
 
+function looksOverEscaped(s) {
+  return /\\\\(begin|end|frac|left|right|mathrm|mathbf|text|times|cdot|quad)/.test(s);
+}
+
+export function normalizeLatex(s) {
+  let t = String(s || "").trim();
+  t = t.replace(/^\$+|\$+$/g, "").trim();
+  for (let i = 0; i < 3 && looksOverEscaped(t); i++) {
+    t = t.replace(/\\\\/g, "\\");
+  }
+  return t;
+}
+
+function canonLatex(s) {
+  return normalizeLatex(s).replace(/\s+/g, "");
+}
+
+function tidySolution(steps) {
+  const src = Array.isArray(steps) ? steps : [];
+  const out = [];
+  for (let i = 0; i < src.length; i++) {
+    const step = { ...src[i] };
+    if (typeof step.latex === "string") step.latex = normalizeLatex(step.latex);
+    if (typeof step.from === "string") step.from = normalizeLatex(step.from);
+    if (typeof step.to === "string") step.to = normalizeLatex(step.to);
+    if (typeof step.text === "string") step.text = normalizeLatex(step.text);
+    if (Array.isArray(step.ops)) step.ops = step.ops.map((op) => normalizeLatex(op));
+    if (step.kind === "text" && /\\begin\{(?:p|b)matrix\}/.test(step.text || "")) {
+      step.kind = "math";
+      step.latex = normalizeLatex(step.text);
+      delete step.text;
+    }
+    const prev = out[out.length - 1];
+    if (step.kind === "math") {
+      if (prev?.kind === "math" && canonLatex(prev.latex) === canonLatex(step.latex)) continue;
+      if (prev?.kind === "rowops" && canonLatex(prev.to) === canonLatex(step.latex)) continue;
+    }
+    out.push(step);
+  }
+  return out;
+}
+
+function normalizeDraft(draft) {
+  if (!draft || typeof draft !== "object") return draft;
+  if (typeof draft.stem === "string") draft.stem = normalizeLatex(draft.stem);
+  for (const problem of draft.problems || []) {
+    if (typeof problem.stem === "string") problem.stem = normalizeLatex(problem.stem);
+    problem.solution = tidySolution(problem.solution);
+  }
+  return draft;
+}
+
 export function parseDraft(text) {
   const trimmed = String(text || "").trim();
   if (looksLikeHtml(trimmed)) {
@@ -156,6 +208,6 @@ export function parseDraft(text) {
     tryParse(extracted) ||
     tryParse(extracted.replace(/,(\s*[}\]])/g, "$1")) ||
     tryParse(salvageJson(trimmed));
-  if (draft) return draft;
+  if (draft) return normalizeDraft(draft);
   throw new Error("认出来了，但结果损坏。请再点一次付印。");
 }
