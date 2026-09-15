@@ -86,9 +86,14 @@ body {
 
 .bed {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
   gap: 18px;
   align-items: stretch;
+}
+
+.platen,
+.tray {
+  min-width: 0;
 }
 
 .platen {
@@ -263,18 +268,18 @@ body {
   background: #4e5965;
   padding: 12px;
   height: calc(100% - 36px);
-  overflow: auto;
+  overflow: hidden;
 }
 
 .sheet {
   width: 210mm;
   min-height: 297mm;
-  margin: 0 auto;
+  margin: 0;
   background: var(--sheet);
   color: var(--ink);
   font-family: var(--song);
   padding: 18mm 18mm 16mm;
-  transform-origin: top center;
+  transform-origin: top left;
   box-shadow: 0 1px 0 rgba(20, 24, 32, 0.12);
 }
 
