@@ -271,13 +271,19 @@ body {
   background: #4e5965;
   padding: 12px;
   height: calc(100% - 36px);
-  overflow: hidden;
+  overflow: auto;
+}
+
+.sheet-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
 }
 
 .sheet-frame {
   position: relative;
   width: 100%;
-  min-height: 420px;
+  min-height: 0;
   overflow: hidden;
 }
 
@@ -375,10 +381,10 @@ body {
 }
 
 .empty-sheet {
-  min-height: 260mm;
+  min-height: 420px;
   display: grid;
   place-content: center;
-  color: #8a8073;
+  color: #c5cdd4;
   text-align: center;
 }
 

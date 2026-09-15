@@ -1,3 +1,16 @@
+export function uniqueDownloadName(title, ext, used) {
+  const base = String(title || "qingyang").replace(/\s+/g, "") || "qingyang";
+  const suffix = String(ext || "pdf").replace(/^\./, "");
+  let name = `${base}.${suffix}`;
+  let n = 2;
+  while (used.includes(name)) {
+    name = `${base}-${n}.${suffix}`;
+    n += 1;
+  }
+  used.push(name);
+  return name;
+}
+
 export function looksLikeHtml(text) {
   const s = String(text || "").trimStart().slice(0, 16).toLowerCase();
   return s.startsWith("<!doctype") || s.startsWith("<html");

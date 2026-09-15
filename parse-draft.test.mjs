@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { extractMessageText, parseDraft } from "./parse-draft.mjs";
+import { extractMessageText, parseDraft, uniqueDownloadName } from "./parse-draft.mjs";
 
 test("parses Qwen-style JSON with raw LaTeX backslashes", () => {
   const raw = String.raw`{"course":"线性代数","title":"第8题","problems":[{"number":"8","stem":"化为RREF","solution":[{"kind":"math","latex":"\begin{pmatrix} 1 & 0 \\ 0 & 1 \end{pmatrix}"}]}]}`;
@@ -87,4 +87,12 @@ test("drops consecutive duplicate matrices", () => {
   assert.equal(draft.problems[0].solution.length, 2);
   assert.equal(draft.problems[0].solution[0].kind, "math");
   assert.equal(draft.problems[0].solution[1].kind, "rowops");
+});
+
+test("unique download names increment on collision", () => {
+  const used = [];
+  assert.equal(uniqueDownloadName("第 8 题", "pdf", used), "第8题.pdf");
+  assert.equal(uniqueDownloadName("第 8 题", "pdf", used), "第8题-2.pdf");
+  assert.equal(uniqueDownloadName("第8题", "tex", used), "第8题.tex");
+  assert.equal(uniqueDownloadName("", "pdf", used), "qingyang.pdf");
 });
