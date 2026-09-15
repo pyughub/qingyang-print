@@ -160,6 +160,32 @@ function looksOverEscaped(s) {
   return /\\\\(begin|end|frac|left|right|mathrm|mathbf|text|times|cdot|quad)/.test(s);
 }
 
+export function repairMathText(s) {
+  let t = String(s || "");
+  const blocks = [];
+  const stash = (inner) => {
+    blocks.push(inner);
+    return `\u0001${blocks.length - 1}\u0001`;
+  };
+  t = t.replace(/\$\$([\s\S]*?)\$\$/g, (_, inner) => stash(inner));
+  if (t.includes("$$")) t += "$$";
+  t = t.replace(/\$\$([\s\S]*?)\$\$/g, (_, inner) => stash(inner));
+  if ((t.match(/\$/g) || []).length % 2) t += "$";
+  if (!/\$|\u0001/.test(t) && /\\(frac|cdot|left|right|times|sum|int|prod|sqrt|mathrm|mathbf|begin|overline)/.test(t)) {
+    const i = t.search(/\\(frac|cdot|left|right|times|sum|int|prod|sqrt|mathrm|mathbf|begin|overline)/);
+    t = `${t.slice(0, i)}$${t.slice(i)}$`;
+  }
+  return t.replace(/\u0001(\d+)\u0001/g, (_, i) => `$$${blocks[Number(i)]}$$`);
+}
+
+function normalizeMixed(s) {
+  let t = String(s || "");
+  for (let i = 0; i < 3 && looksOverEscaped(t); i++) {
+    t = t.replace(/\\\\/g, "\\");
+  }
+  return repairMathText(t);
+}
+
 export function normalizeLatex(s) {
   let t = String(s || "").trim();
   t = t.replace(/^\$+|\$+$/g, "").trim();
@@ -181,7 +207,7 @@ function tidySolution(steps) {
     if (typeof step.latex === "string") step.latex = normalizeLatex(step.latex);
     if (typeof step.from === "string") step.from = normalizeLatex(step.from);
     if (typeof step.to === "string") step.to = normalizeLatex(step.to);
-    if (typeof step.text === "string") step.text = normalizeLatex(step.text);
+    if (typeof step.text === "string") step.text = normalizeMixed(step.text);
     if (Array.isArray(step.ops)) step.ops = step.ops.map((op) => normalizeLatex(op));
     if (step.kind === "text" && /\\begin\{(?:p|b)matrix\}/.test(step.text || "")) {
       step.kind = "math";
@@ -200,9 +226,9 @@ function tidySolution(steps) {
 
 function normalizeDraft(draft) {
   if (!draft || typeof draft !== "object") return draft;
-  if (typeof draft.stem === "string") draft.stem = normalizeLatex(draft.stem);
+  if (typeof draft.stem === "string") draft.stem = normalizeMixed(draft.stem);
   for (const problem of draft.problems || []) {
-    if (typeof problem.stem === "string") problem.stem = normalizeLatex(problem.stem);
+    if (typeof problem.stem === "string") problem.stem = normalizeMixed(problem.stem);
     problem.solution = tidySolution(problem.solution);
   }
   return draft;

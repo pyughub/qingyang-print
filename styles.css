@@ -318,9 +318,9 @@ body {
 }
 
 .who {
-  text-align: center;
+  text-align: left;
   font-size: 14px;
-  margin: -8px 0 18px;
+  margin: 0 0 18px;
 }
 
 .problem {

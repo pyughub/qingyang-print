@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { extractMessageText, parseDraft, uniqueDownloadName } from "./parse-draft.mjs";
+import { extractMessageText, parseDraft, repairMathText, uniqueDownloadName } from "./parse-draft.mjs";
 
 test("parses Qwen-style JSON with raw LaTeX backslashes", () => {
   const raw = String.raw`{"course":"线性代数","title":"第8题","problems":[{"number":"8","stem":"化为RREF","solution":[{"kind":"math","latex":"\begin{pmatrix} 1 & 0 \\ 0 & 1 \end{pmatrix}"}]}]}`;
@@ -44,7 +44,7 @@ test("reads OpenAI-style array message content", () => {
 test("repairs frac that JSON would silently mangle", () => {
   const raw = String.raw`{"problems":[{"stem":"求 \frac{1}{2}","solution":[{"kind":"math","latex":"\times 2"}]}]}`;
   const draft = parseDraft(raw);
-  assert.equal(draft.problems[0].stem, String.raw`求 \frac{1}{2}`);
+  assert.equal(draft.problems[0].stem, String.raw`求 $\frac{1}{2}$`);
   assert.equal(draft.problems[0].solution[0].latex, String.raw`\times 2`);
 });
 
@@ -95,4 +95,16 @@ test("unique download names increment on collision", () => {
   assert.equal(uniqueDownloadName("第 8 题", "pdf", used), "第8题-2.pdf");
   assert.equal(uniqueDownloadName("第8题", "tex", used), "第8题.tex");
   assert.equal(uniqueDownloadName("", "pdf", used), "qingyang.pdf");
+});
+
+test("closes unclosed display math in induction text", () => {
+  const src = String.raw`假设当 n = k 时成立, 即 $$S_k = \frac{1}{6} \cdot k \cdot (k+1) \cdot (2k+1)`;
+  const out = repairMathText(src);
+  assert.match(out, /\$\$S_k[\s\S]*\$\$$/);
+  const draft = parseDraft(
+    JSON.stringify({
+      problems: [{ stem: "归纳", solution: [{ kind: "text", text: src }] }],
+    })
+  );
+  assert.match(draft.problems[0].solution[0].text, /\$\$S_k[\s\S]*\$\$$/);
 });
