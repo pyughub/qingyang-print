@@ -280,6 +280,21 @@ ${body.join("\n")}
 `;
 }
 
+function looksLikeHtml(text) {
+  const s = String(text || "").trimStart().slice(0, 16).toLowerCase();
+  return s.startsWith("<!doctype") || s.startsWith("<html");
+}
+
+async function readBody(res) {
+  const text = await res.text();
+  if (looksLikeHtml(text)) return { html: true, text };
+  try {
+    return { json: JSON.parse(text), text };
+  } catch {
+    return { text };
+  }
+}
+
 async function composeViaGemini(key, model, images) {
   const parts = [
     {
@@ -292,21 +307,34 @@ async function composeViaGemini(key, model, images) {
   const models = model ? [model] : ["gemini-2.5-flash", "gemini-2.0-flash"];
   let lastErr = "排版机没有回稿。";
   for (const m of models) {
-    const res = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/${m}:generateContent`,
-      {
-        method: "POST",
-        headers: {
-          "content-type": "application/json",
-          "x-goog-api-key": key,
-        },
-        body: JSON.stringify({
-          contents: [{ role: "user", parts }],
-          generationConfig: { temperature: 0.1, responseMimeType: "application/json" },
-        }),
-      }
-    );
-    const data = await res.json();
+    let res;
+    try {
+      res = await fetch(
+        `https://generativelanguage.googleapis.com/v1beta/models/${m}:generateContent`,
+        {
+          method: "POST",
+          headers: {
+            "content-type": "application/json",
+            "x-goog-api-key": key,
+          },
+          body: JSON.stringify({
+            contents: [{ role: "user", parts }],
+            generationConfig: { temperature: 0.1, responseMimeType: "application/json" },
+          }),
+        }
+      );
+    } catch {
+      throw new Error("连不上 Gemini。请确认能打开 Google，或在印鉴里改用校园兼容接口。");
+    }
+    const body = await readBody(res);
+    if (body.html) {
+      throw new Error("Gemini 接口被拦截了。可换网络，或在印鉴里改用 OpenAI 兼容网关。");
+    }
+    const data = body.json;
+    if (!data) {
+      lastErr = "Gemini 返回了无法识别的内容。";
+      continue;
+    }
     if (!res.ok) {
       lastErr = data.error?.message || lastErr;
       continue;
@@ -317,51 +345,63 @@ async function composeViaGemini(key, model, images) {
   throw new Error(lastErr);
 }
 
+async function composeViaFunction(key) {
+  const res = await fetch("/.netlify/functions/compose", {
+    method: "POST",
+    headers: {
+      "content-type": "application/json",
+      "x-print-key": key,
+    },
+    body: JSON.stringify({
+      provider: localStorage.getItem(KEYS.provider) || "gemini",
+      model: localStorage.getItem(KEYS.model) || "",
+      baseUrl: localStorage.getItem(KEYS.base) || "",
+      images: images.map(({ mime, data }) => ({ mime, data })),
+    }),
+  });
+  const body = await readBody(res);
+  if (body.html || res.status === 404 || res.status === 405) return null;
+  if (!body.json) return null;
+  if (!res.ok) {
+    const err = new Error(body.json.error || "付印失败");
+    err.needKey = Boolean(body.json.needKey);
+    throw err;
+  }
+  return body.json.draft;
+}
+
 async function compose() {
   if (!images.length) {
     setStatus("先把照片放到玻璃台上。", true);
     return;
   }
   const key = localStorage.getItem(KEYS.key) || "";
+  const provider = localStorage.getItem(KEYS.provider) || "gemini";
   printBtn.disabled = true;
   setStatus("正在认手写、排铅字…");
   try {
+    const hosted = location.hostname.endsWith("github.io");
     let draft = null;
-    let res;
-    try {
-      res = await fetch("/.netlify/functions/compose", {
-        method: "POST",
-        headers: {
-          "content-type": "application/json",
-          "x-print-key": key,
-        },
-        body: JSON.stringify({
-          provider: localStorage.getItem(KEYS.provider) || "gemini",
-          model: localStorage.getItem(KEYS.model) || "",
-          baseUrl: localStorage.getItem(KEYS.base) || "",
-          images: images.map(({ mime, data }) => ({ mime, data })),
-        }),
-      });
-    } catch {
-      res = { status: 404 };
+    if (!hosted) {
+      try {
+        draft = await composeViaFunction(key);
+      } catch (err) {
+        if (err.needKey) {
+          seal.showModal();
+          throw new Error("需要印鉴。请填写密钥。");
+        }
+        throw err;
+      }
     }
-    if (res.status === 404) {
+    if (!draft) {
       if (!key) {
         seal.showModal();
         throw new Error("需要印鉴。请填写 Google AI Studio 密钥。");
       }
-      draft = await composeViaGemini(
-        key,
-        localStorage.getItem(KEYS.model) || "",
-        images
-      );
-    } else {
-      const data = await res.json();
-      if (!res.ok) {
-        if (data.needKey) seal.showModal();
-        throw new Error(data.error || "付印失败");
+      if (provider === "openai") {
+        throw new Error("当前站点请先用 Gemini。校园网关需要另内部署函数。");
       }
-      draft = data.draft;
+      draft = await composeViaGemini(key, localStorage.getItem(KEYS.model) || "", images);
     }
     renderSheet(draft);
     fitSheet();
