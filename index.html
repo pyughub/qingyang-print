@@ -15,7 +15,7 @@
     <header class="mast">
       <div>
         <h1 class="brand">清样</h1>
-        <p class="tag">手稿进，铅字出。<span class="ver">8</span></p>
+        <p class="tag">手稿进，铅字出。<span class="ver">9</span></p>
       </div>
       <button type="button" class="seal-btn" id="open-seal">印鉴</button>
     </header>
@@ -67,19 +67,26 @@
   <dialog class="dialog" id="seal">
     <form class="dialog-body" method="dialog" id="seal-form">
       <h2>印鉴</h2>
-      <p>认手写需要视觉模型。密钥只存在这台浏览器，用来调用 Gemini，不会存到本站。</p>
-      <p>免费申请：<a href="https://aistudio.google.com/apikey" target="_blank" rel="noreferrer">Google AI Studio</a></p>
+      <p>Google 项目若被拒绝，改用国内通义千问。密钥只存在这台浏览器。</p>
+      <p>
+        申请：
+        <a href="https://bailian.console.aliyun.com/?apiKey=1#/api-key" target="_blank" rel="noreferrer">阿里云百炼</a>
+        ·
+        <a href="https://cloud.siliconflow.cn/account/ak" target="_blank" rel="noreferrer">硅基流动</a>
+      </p>
       <label for="provider">接口</label>
       <select id="provider">
+        <option value="qwen">通义千问（推荐）</option>
+        <option value="siliconflow">硅基流动</option>
         <option value="gemini">Gemini</option>
-        <option value="openai">OpenAI 兼容（含校园网关）</option>
+        <option value="openai">其他 OpenAI 兼容</option>
       </select>
       <label for="api-key">密钥</label>
       <input id="api-key" type="password" autocomplete="off" />
-      <label for="model">模型（可空）</label>
-      <input id="model" placeholder="gemini-3.6-flash" />
-      <label for="base-url">Base URL（仅兼容接口）</label>
-      <input id="base-url" placeholder="https://api.openai.com/v1" />
+      <label for="model">模型</label>
+      <input id="model" placeholder="qwen-vl-plus" />
+      <label for="base-url">Base URL</label>
+      <input id="base-url" placeholder="https://dashscope.aliyuncs.com/compatible-mode/v1" />
       <menu>
         <button value="cancel">关闭</button>
         <button class="primary" value="save">收下</button>
@@ -91,6 +98,6 @@
   <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.22/dist/katex.min.js" integrity="sha384-cMkvdD8LoxVzGF/RPUKAcvmm49FQ0oxwDF3BGKtDXcEc+T1b2N+teh/OJfpU0jr6" crossorigin="anonymous"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js" integrity="sha384-ZZ1pncU3bQe8y31yfZdMFdSpttDoPmOZg2wguVK9almUodir1PghgT0eY7Mrty8H" crossorigin="anonymous"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/jspdf@2.5.2/dist/jspdf.umd.min.js" integrity="sha384-en/ztfPSRkGfME4KIm05joYXynqzUgbsG5nMrj/xEFAHXkeZfO3yMK8QQ+mP7p1/" crossorigin="anonymous"></script>
-  <script defer src="./print.v8.js"></script>
+  <script defer src="./print.v9.js"></script>
 </body>
 </html>
