@@ -127,3 +127,27 @@ test("strips leftover \\n from latex so KaTeX does not show it", () => {
   assert.equal(draft.problems[0].solution[0].latex, String.raw`\frac{1}{6}(k+1)(k+2)(2k+3)`);
   assert.doesNotMatch(draft.problems[0].solution[0].latex, /\\n/);
 });
+
+test("restores forall instead of italic foralln", () => {
+  const over = JSON.stringify({
+    problems: [
+      {
+        stem: "x",
+        solution: [{ kind: "math", latex: String.raw`\\forall n \in \mathbb{Z}_+` }],
+      },
+    ],
+  });
+  assert.equal(
+    parseDraft(over).problems[0].solution[0].latex,
+    String.raw`\forall n \in \mathbb{Z}_+`
+  );
+  const bare = JSON.stringify({
+    problems: [
+      {
+        stem: "x",
+        solution: [{ kind: "text", text: String.raw`forall n \in \mathbb{Z}_+` }],
+      },
+    ],
+  });
+  assert.match(parseDraft(bare).problems[0].solution[0].text, /\\forall n/);
+});

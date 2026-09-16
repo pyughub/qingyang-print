@@ -162,7 +162,13 @@ function salvageJson(raw) {
 }
 
 function looksOverEscaped(s) {
-  return /\\\\(begin|end|frac|left|right|mathrm|mathbf|text|times|cdot|quad)/.test(s);
+  return /\\\\[A-Za-z]/.test(s);
+}
+
+function restoreBareCommands(t) {
+  return String(t || "")
+    .replace(/\bfor\s+all\b/gi, "\\forall")
+    .replace(/(^|[^\\A-Za-z])(forall|exists)(?![A-Za-z])/g, "$1\\$2");
 }
 
 export function repairMathText(s) {
@@ -196,7 +202,7 @@ function normalizeMixed(s) {
   for (let i = 0; i < 3 && looksOverEscaped(t); i++) {
     t = t.replace(/\\\\/g, "\\");
   }
-  return repairMathText(dropSpuriousBreaks(t));
+  return repairMathText(restoreBareCommands(dropSpuriousBreaks(t)));
 }
 
 export function normalizeLatex(s) {
@@ -205,7 +211,7 @@ export function normalizeLatex(s) {
   for (let i = 0; i < 3 && looksOverEscaped(t); i++) {
     t = t.replace(/\\\\/g, "\\");
   }
-  return dropSpuriousBreaks(t);
+  return restoreBareCommands(dropSpuriousBreaks(t));
 }
 
 function canonLatex(s) {
