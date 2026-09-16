@@ -108,3 +108,22 @@ test("closes unclosed display math in induction text", () => {
   );
   assert.match(draft.problems[0].solution[0].text, /\$\$S_k[\s\S]*\$\$$/);
 });
+
+test("strips leftover \\n from latex so KaTeX does not show it", () => {
+  const raw = JSON.stringify({
+    problems: [
+      {
+        stem: "x",
+        solution: [
+          {
+            kind: "math",
+            latex: String.raw`\frac{1}{6}(k+1)(k+2)(2k+3)\n`,
+          },
+        ],
+      },
+    ],
+  });
+  const draft = parseDraft(raw);
+  assert.equal(draft.problems[0].solution[0].latex, String.raw`\frac{1}{6}(k+1)(k+2)(2k+3)`);
+  assert.doesNotMatch(draft.problems[0].solution[0].latex, /\\n/);
+});

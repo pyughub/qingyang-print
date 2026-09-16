@@ -92,6 +92,11 @@ function escapeBadStrings(src) {
         escaped = true;
         continue;
       }
+      if ((n === "n" || n === "r" || n === "t") && !/[A-Za-z]/.test(src[i + 2] || "")) {
+        out += c;
+        escaped = true;
+        continue;
+      }
       out += "\\\\";
       continue;
     }
@@ -178,12 +183,20 @@ export function repairMathText(s) {
   return t.replace(/\u0001(\d+)\u0001/g, (_, i) => `$$${blocks[Number(i)]}$$`);
 }
 
+function dropSpuriousBreaks(t) {
+  return String(t || "")
+    .replace(/\\n(?![A-Za-z])/g, "")
+    .replace(/\\r(?![A-Za-z])/g, "")
+    .replace(/\s*\n+\s*/g, " ")
+    .trim();
+}
+
 function normalizeMixed(s) {
   let t = String(s || "");
   for (let i = 0; i < 3 && looksOverEscaped(t); i++) {
     t = t.replace(/\\\\/g, "\\");
   }
-  return repairMathText(t);
+  return repairMathText(dropSpuriousBreaks(t));
 }
 
 export function normalizeLatex(s) {
@@ -192,7 +205,7 @@ export function normalizeLatex(s) {
   for (let i = 0; i < 3 && looksOverEscaped(t); i++) {
     t = t.replace(/\\\\/g, "\\");
   }
-  return t;
+  return dropSpuriousBreaks(t);
 }
 
 function canonLatex(s) {
